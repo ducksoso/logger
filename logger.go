@@ -166,7 +166,12 @@ type defaultFormatter struct {
 }
 
 func (df *defaultFormatter) Format(rec *Record) string {
-	return fmt.Sprintf("%s [%s] %-8s %s", fmt.Sprint(rec.Time)[:19], rec.LoggerName, LevelNames[rec.Level], fmt.Sprintf(rec.Format, rec.Args...))
+	paths := strings.Split(rec.Filename, string(os.PathSeparator))
+
+	filePath := strings.Join(paths[len(paths)-2:], string(os.PathSeparator))
+
+	return fmt.Sprintf("%s %-8s[%s:%d] %s", fmt.Sprint(rec.Time)[:19],
+		LevelNames[rec.Level], filePath, rec.Line, fmt.Sprintf(rec.Format, rec.Args...))
 }
 
 // /////////////////////////
@@ -269,7 +274,7 @@ func (l *logger) log(level Level, format string, args ...interface{}) {
 		format += "\n"
 	}
 
-	_, file, line, ok := runtime.Caller(l.calldepth + 2)
+	_, file, line, ok := runtime.Caller(l.calldepth + 3)
 	if !ok {
 		file = "???"
 		line = 0
