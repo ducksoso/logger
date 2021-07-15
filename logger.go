@@ -25,8 +25,10 @@ const (
 	NOTICE
 	INFO
 	DEBUG
+)
 
-	// BLACK Colors for different log levels.
+// Colors for different log levels.
+const (
 	BLACK color = iota + 30
 	RED
 	GREEN
