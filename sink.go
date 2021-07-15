@@ -47,7 +47,7 @@ func (b *SinkHandler) Status() (int, int) {
 }
 
 // SetLevel sets logger level for handler.
-func (b *SinkHandler) SetLevel(l Level) {
+func (b *SinkHandler) SetLevel(l level) {
 	b.inner.SetLevel(l)
 }
 

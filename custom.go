@@ -16,7 +16,7 @@ func (f *CustomFormatter) Format(rec *Record) string {
 
 	return fmt.Sprintf("%-24s %-8s [%-15s][PID:%d][%s:%d] %s",
 		rec.Time.UTC().Format("2006-01-02T15:04:05.999Z"),
-		LevelNames[rec.Level],
+		levelNames[rec.Level],
 		rec.LoggerName,
 		rec.ProcessID,
 		filePath,

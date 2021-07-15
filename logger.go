@@ -13,15 +13,21 @@ import (
 )
 
 type (
-	// Color represents log level colors
-	Color int
-	// Level represents severity of logs
-	Level int
+	color int // color represents log level colors
+	level int // level represents severity of logs
 )
 
-// Colors for different log levels.
+// Logger levels.
 const (
-	BLACK Color = iota + 30
+	CRITICAL level = iota
+	ERROR
+	WARNING
+	NOTICE
+	INFO
+	DEBUG
+
+	// BLACK Colors for different log levels.
+	BLACK color = iota + 30
 	RED
 	GREEN
 	YELLOW
@@ -31,18 +37,8 @@ const (
 	WHITE
 )
 
-// Logger levels.
-const (
-	CRITICAL Level = iota
-	ERROR
-	WARNING
-	NOTICE
-	INFO
-	DEBUG
-)
-
-// LevelNames provides mapping for log levels.
-var LevelNames = map[Level]string{
+// levelNames provides mapping for log levels.
+var levelNames = map[level]string{
 	CRITICAL: "CRITICAL",
 	ERROR:    "ERROR",
 	WARNING:  "WARNING",
@@ -51,8 +47,8 @@ var LevelNames = map[Level]string{
 	DEBUG:    "DEBUG",
 }
 
-// LevelColors provides mapping for log colors.
-var LevelColors = map[Level]Color{
+// levelColors provides mapping for log colors.
+var levelColors = map[level]color{
 	CRITICAL: MAGENTA,
 	ERROR:    RED,
 	WARNING:  YELLOW,
@@ -66,19 +62,19 @@ var (
 	DefaultLogger Logger = NewLogger(procName())
 
 	// DefaultLevel holds default value for loggers
-	DefaultLevel Level = INFO
+	DefaultLevel level = INFO
 
 	// DefaultFormatter holds default formatter for loggers
 	DefaultFormatter Formatter = &defaultFormatter{}
 
 	// DefaultHandler holds default handler for loggers
-	DefaultHandler Handler = StderrHandler
+	DefaultHandler Handler = stderrHandler
 
-	// StdoutHandler holds a handler with outputting to stdout
-	StdoutHandler = NewWriterHandler(os.Stdout)
+	// stdoutHandler holds a handler with outputting to stdout
+	stdoutHandler = NewWriterHandler(os.Stdout)
 
-	// StderrHandler holds a handler with outputting to stderr
-	StderrHandler = NewWriterHandler(os.Stderr)
+	// stderrHandler holds a handler with outputting to stderr
+	stderrHandler = NewWriterHandler(os.Stderr)
 )
 
 // Logger is the interface for output log messages in different levels.
@@ -86,9 +82,9 @@ var (
 // You can changed the output handler with SetHandler() function.
 type Logger interface {
 	// SetLevel changes the level of the logger. Default is logging.Info.
-	SetLevel(Level)
+	SetLevel(level)
 
-	// SetHandler replaces the current handler for output. Default is logger.StderrHandler.
+	// SetHandler replaces the current handler for output. Default is logger.stderrHandler.
 	SetHandler(Handler)
 
 	// SetCallDepth sets the parameter passed to runtime.Caller().
@@ -128,7 +124,7 @@ type Logger interface {
 // Handler handles the output.
 type Handler interface {
 	SetFormatter(Formatter)
-	SetLevel(Level)
+	SetLevel(level)
 
 	// Handle single log record.
 	Handle(*Record)
@@ -142,7 +138,7 @@ type Record struct {
 	Format      string        // Format string
 	Args        []interface{} // Arguments to format string
 	LoggerName  string        // Name of the logger module
-	Level       Level         // Level of the record
+	Level       level         // Level of the record
 	Time        time.Time     // Time of the record (local time)
 	Filename    string        // File name of the log call (absolute path)
 	Line        int           // Lint number in file
@@ -171,7 +167,7 @@ func (df *defaultFormatter) Format(rec *Record) string {
 	filePath := strings.Join(paths[len(paths)-2:], string(os.PathSeparator))
 
 	return fmt.Sprintf("%s %-8s[%s:%d] %s", fmt.Sprint(rec.Time)[:19],
-		LevelNames[rec.Level], filePath, rec.Line, fmt.Sprintf(rec.Format, rec.Args...))
+		levelNames[rec.Level], filePath, rec.Line, fmt.Sprintf(rec.Format, rec.Args...))
 }
 
 // /////////////////////////
@@ -183,7 +179,7 @@ func (df *defaultFormatter) Format(rec *Record) string {
 // logger is the default Logger implementation.
 type logger struct {
 	Name      string
-	Level     Level
+	Level     level
 	Handler   Handler
 	calldepth int
 }
@@ -201,7 +197,7 @@ func (l *logger) New(prefixes ...interface{}) Logger {
 	return newContext(*l, "", prefixes...)
 }
 
-func (l *logger) SetLevel(level Level) {
+func (l *logger) SetLevel(level level) {
 	l.Level = level
 }
 
@@ -268,7 +264,7 @@ func (l *logger) Debug(format string, args ...interface{}) {
 	}
 }
 
-func (l *logger) log(level Level, format string, args ...interface{}) {
+func (l *logger) log(level level, format string, args ...interface{}) {
 	// Add missing newline at the end.
 	if !strings.HasSuffix(format, "\n") {
 		format += "\n"
@@ -354,7 +350,7 @@ func Debug(format string, args ...interface{}) {
 
 // BaseHandler provides basic functionality for handler
 type BaseHandler struct {
-	Level     Level
+	Level     level
 	Formatter Formatter
 }
 
@@ -367,7 +363,7 @@ func NewBaseHandler() *BaseHandler {
 }
 
 // SetLevel sets logger level for handler
-func (h *BaseHandler) SetLevel(l Level) {
+func (h *BaseHandler) SetLevel(l level) {
 	h.Level = l
 }
 
@@ -411,7 +407,7 @@ func (b *WriterHandler) Handle(rec *Record) {
 		return
 	}
 	if b.Colorize {
-		b.w.Write([]byte(fmt.Sprintf("\033[%dm", LevelColors[rec.Level])))
+		b.w.Write([]byte(fmt.Sprintf("\033[%dm", levelColors[rec.Level])))
 	}
 	fmt.Fprint(b.w, message)
 	if b.Colorize {
@@ -446,7 +442,7 @@ func (b *MultiHandler) SetFormatter(f Formatter) {
 }
 
 // SetLevel sets level for all handlers
-func (b *MultiHandler) SetLevel(l Level) {
+func (b *MultiHandler) SetLevel(l level) {
 	for _, h := range b.handlers {
 		h.SetLevel(l)
 	}

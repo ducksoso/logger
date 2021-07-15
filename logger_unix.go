@@ -3,6 +3,6 @@
 package logger
 
 func init() {
-	StdoutHandler.Colorize = true
-	StderrHandler.Colorize = true
+	stdoutHandler.Colorize = true
+	stderrHandler.Colorize = true
 }

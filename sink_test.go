@@ -9,7 +9,7 @@ import (
 )
 
 type LogRecorder struct {
-	Level     Level
+	Level     level
 	Formatter Formatter
 	Records   map[string][]*Record
 	Closed    bool
@@ -21,7 +21,7 @@ func NewLogRecorder() *LogRecorder {
 	}
 }
 
-func (b *LogRecorder) SetLevel(l Level) {
+func (b *LogRecorder) SetLevel(l level) {
 	b.Level = l
 }
 
